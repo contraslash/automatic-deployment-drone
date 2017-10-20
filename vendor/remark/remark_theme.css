@@ -18,7 +18,7 @@ img{
   height: 100px;
   bottom: 3em;
   left: 20%;
-  background-image: url("../../img/contraslash_logo.png"), url("../../img/teranova_logo.png");
+  background-image: url("../../img/contraslash_logo.png"), url("../../img/tranqui_logo.jpg");
   background-repeat: no-repeat, no-repeat ;
   background-position: left, right;
   background-size: contain,contain;
@@ -39,6 +39,7 @@ img{
 }
 
 img{
+  margin: 0 auto;
   width: 90%;
-  left: 5%;
+  margin-left: 5%;
 }
