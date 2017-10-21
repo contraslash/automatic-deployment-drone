@@ -38,9 +38,9 @@ pipeline:
 
   deploy_production:
     image: appleboy/drone-ssh
-    username: deploy
-    password: D#pl0yF*rF!N4NTIk
-    host: app.finantic.co
+    username: username
+    password: password
+    host: prod.example.com
     port: 22
     script:
       - docker login -u username -p password registry.example.com:5000
