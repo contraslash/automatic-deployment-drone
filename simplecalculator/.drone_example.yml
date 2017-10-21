@@ -1,5 +1,9 @@
 pipeline:
-
+ test:
+   image: python:alpine3.6
+   commands:
+     - pip install -r requirements.txt
+     - python manage.py test
   compile_test:
     image: plugins/docker
     repo: registry.example.com:5000/user/repo
