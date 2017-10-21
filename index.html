@@ -137,6 +137,60 @@ docker service create \
 ```
 [Código original](https://github.com/contraslash/swarm-services-recipes/blob/master/drone.md)
 ---
+# Traefik como Proxy Inverso
+```bash
+docker service create \
+    --name traefik \
+    --constraint=node.role==manager \
+    --publish 80:80 \
+    --publish 443:443 \
+    --publish 8080:8080 \
+    --mount type=bind,source=/var/run/docker.sock,target=/var/run/docker.sock \
+    --network traefik-network \
+    traefik \
+    --docker \
+    --docker.swarmmode \
+    --docker.domain=example.com \
+    --docker.watch \
+    --web
+```
+[Código original](https://github.com/contraslash/swarm-services-recipes/blob/master/traefik.md)
+---
+# Crear dos instancias, una para producción y otra para test
+```yaml
+pipeline:
+
+  compile_test:
+    image: plugins/docker
+    repo: registry.example.com:5000/user/repo
+    username: username
+    password: password
+    registry: registry.example.com
+    tags: [ test ]
+    when:
+      branch: [test]
+
+  deploy_test:
+    image: appleboy/drone-ssh
+    username: username
+    password: password
+    host: test.example.com
+    port: 22
+    script:
+      - docker login -u username -p password registry.example.com:5000
+      - docker pull registry.example.com:5000/user/repo:test
+      - docker service rm test
+      - docker service create --name test --label traefik.port=8000 --label traefik.frontend.rule=Host:test.example.com --network traefik-network registry.example.com:5000/user/repo:test
+```
+---
+# Mejores prácticas para el uso de ramos en CD
+![http://guides.beanstalkapp.com/version-control/branching-best-practices/stage-1.png](http://guides.beanstalkapp.com/version-control/branching-best-practices/stage-1.png)
+![http://guides.beanstalkapp.com/version-control/branching-best-practices/stage-3.png](http://guides.beanstalkapp.com/version-control/branching-best-practices/stage-3.png)
+[Traducción](http://blog.contraslash.com/mejores-practicas-para-el-manejo-de-ramas-en-git/)
+---
+# Las cosas se pueden complicar
+![https://media.giphy.com/media/UedEkAAyEhMLC/giphy.gif](https://media.giphy.com/media/UedEkAAyEhMLC/giphy.gif)
+---
 # Vinculos utiles
 - https://www.suse.com/es-es/solutions/devops/
 - https://www.edx.org/es/course/introduction-devops-transforming-linuxfoundationx-lfs161x
@@ -149,7 +203,6 @@ docker service create \
 
 ---
 Dar las gracias y huir
-
 
 </textarea>
 <script src="vendor/remark/remark.min.js">
