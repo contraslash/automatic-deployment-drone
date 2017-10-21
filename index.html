@@ -79,11 +79,64 @@ Una plataforma liviana y poderosa de Entrega Continua construida para contenedor
 Un paquete ejecutable, liviano, autónomo que incluye todo lo necesario para ejecutarse.
 
 ![https://www.docker.com/sites/default/files/Whale%20Logo332_5.png](https://www.docker.com/sites/default/files/Whale%20Logo332_5.png)
+
+---
+# Docker con baterias
+.left[
+- Docker Swarm
+- Docker Machine
+]
+.right[
+![https://www.linux.com/sites/lcom/files/styles/floated_images/public/docker-swarm-hero2.png](https://www.linux.com/sites/lcom/files/styles/floated_images/public/docker-swarm-hero2.png)
+]
 ---
 # Ejemplo
 
----
+- Crear un swarm usando Docker Machine y AWS
+- Desplegar en el swarm Drone y Drone agent
+- Crear dos instancias, una para producción y otra para test
 
+---
+# Crear un swarm usando Docker Machine y AWS
+```bash
+docker-machine create -d amazonec2 \
+  --amazonec2-vpc-id $VPC \
+  --amazonec2-region $REGION \
+  --amazonec2-zone $ZONE \
+  --amazonec2-instance-type t2.small \
+  --amazonec2-subnet-id $SUBNET \
+  --amazonec2-security-group $SECURITY_GROUP \
+  $MANAGER_NAME
+```
+
+[Código completo](https://github.com/contraslash/aws-docker-swarm)
+
+```bash
+eval $(docker-machine env $MANAGER_NAME)
+```
+---
+# Desplegar en el swarm Drone y Drone agent
+
+## Server
+```bash
+docker service create \
+    --name drone\
+    --network traefik-network \
+    --label traefik.port=8000 \
+    --env-file /etc/drone/dronerc \
+    drone/drone:0.7
+```
+
+## Agent
+```bash
+docker service create \
+  --name drone-agent\
+  --env-file /etc/drone/droneagentrc \
+  --mount=type=bind,src=/var/run/docker.sock,dst=/var/run/docker.sock \
+  drone/drone:0.7 agent
+```
+[Código original](https://github.com/contraslash/swarm-services-recipes/blob/master/drone.md)
+---
 # Vinculos utiles
 - https://www.suse.com/es-es/solutions/devops/
 - https://www.edx.org/es/course/introduction-devops-transforming-linuxfoundationx-lfs161x
@@ -91,6 +144,7 @@ Un paquete ejecutable, liviano, autónomo que incluye todo lo necesario para eje
 - https://code.facebook.com/posts/270314900139291/rapid-release-at-massive-scale/
 - https://stackify.com/continuous-delivery-vs-continuous-deployment-vs-continuous-integration/
 - https://www.infoq.com/articles/merging-devops-agile
+- http://learninone.com/category/devops/
 
 
 ---

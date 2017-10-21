@@ -1,0 +1,57 @@
+pipeline:
+
+  compile_test:
+    image: plugins/docker
+    repo: registry.example.com:5000/user/repo
+    username: username
+    password: password
+    registry: registry.example.com
+    tags: [ test ]
+    when:
+      branch: [test]
+
+  compile_production:
+    image: plugins/docker
+    repo: registry.example.com:5000/user/repo
+    username: username
+    password: password
+    registry: registry.example.com
+    tags: [ latest ]
+    when:
+      branch: [ production ]
+
+  deploy_test:
+    image: appleboy/drone-ssh
+    username: username
+    password: password
+    host: test.example.com
+    port: 22
+    script:
+      - docker login -u username -p password registry.example.com:5000
+      - docker pull registry.example.com:5000/user/repo:test
+      - docker service rm test
+      - docker service create --name test --label traefik.port=8000 --label traefik.frontend.rule=Host:test.example.com --network traefik-network registry.example.com:5000/user/repo:test
+
+    when:
+      status: success
+      branch: test
+
+  deploy_production:
+    image: appleboy/drone-ssh
+    username: deploy
+    password: D#pl0yF*rF!N4NTIk
+    host: app.finantic.co
+    port: 22
+    script:
+      - docker login -u username -p password registry.example.com:5000
+      - docker registry.example.com:5000/user/repo
+      - docker service rm prod
+      - docker service create --name prod --label traefik.port=8000 --label traefik.frontend.rule=Host:prod.example.com --network traefik-network  registry.example.com:5000/user/repo:latest
+    when:
+      status: success
+      branch: production
+
+  slack:
+    image: plugins/slack
+    webhook: https://hooks.slack.com/services/TAAAAAAAA/BAAAAAAAA/123456789012345678901234
+    channel: devops
